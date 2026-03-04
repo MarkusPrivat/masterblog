@@ -53,12 +53,12 @@ def delete_blog_post(post_id: str) -> tuple[bool, str]:
     return False, ID_NOT_FOUND
 
 
-def update_blog_post(new_post: dict, post_id: str) -> tuple[bool, str]:
+def update_blog_post(new_post: dict,) -> tuple[bool, str]:
     is_executed, blog_posts = load_blog_posts()
     if not is_executed:
         return False, ERROR_LOAD_JSON
     for post in blog_posts:
-        if post['id'] == post_id:
+        if post['id'] == new_post['id']:
             post.update(new_post)
             is_executed, msg = save_blog_posts(blog_posts)
             if not is_executed:
