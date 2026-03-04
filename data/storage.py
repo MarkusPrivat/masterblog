@@ -36,6 +36,22 @@ def append_blog_post(blog_post: dict) -> tuple[bool, str]:
     return True, "Done"
 
 
+def delete_blog_post(post_id: str) -> tuple[bool, str]:
+    is_executed, blog_posts = load_blog_posts()
+    if not is_executed:
+        return False, "Could not load blog_post.json"
+    for index, post in enumerate(blog_posts):
+        if post['id'] == post_id:
+            del blog_posts[index]
+            is_executed, msg = save_blog_posts(blog_posts)
+            if not is_executed:
+                return False, msg
+            return True, "Done"
+    return False, "Post ID not found!"
+
+
+
+
 def main():
     print(load_blog_posts())
 
