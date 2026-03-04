@@ -2,12 +2,14 @@ from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for
 
-from data.storage import load_blog_posts, append_blog_post, delete_blog_post, update_blog_post
+from data.storage import (load_blog_posts, append_blog_post, delete_blog_post,
+                          update_blog_post, fetch_post_by_id)
 
 
 app = Flask(__name__)
 NOT_IN_JSON = "Blog post not in blog_posts.json"
 ERROR_LOAD_POSTS = "Error loading Blog posts"
+NO_FORM_DELETE = "You did not enter 'DELETE'"
 
 
 @app.route('/')
@@ -45,46 +47,40 @@ def add():
 @app.route('/delete/<post_id>', methods=['GET', 'POST'])
 def delete(post_id):
     if request.method == 'POST':
-        delete = request.form.get('delete')
-        if delete == 'DELETE':
+        form_delete = request.form.get('delete')
+        if form_delete == 'DELETE':
             is_executes, msg = delete_blog_post(post_id)
             if not is_executes:
                 return msg
             return redirect(url_for('home'))
-        return "You did not enter 'DELETE'"
+        return NO_FORM_DELETE
 
-    is_executed, blog_posts = load_blog_posts()
+    is_executed, post = fetch_post_by_id(post_id)
     if not is_executed:
         return ERROR_LOAD_POSTS
-    for post in blog_posts:
-        if post['id'] == post_id:
-            return render_template('delete.html', post=post, post_id=post_id)
-    return NOT_IN_JSON
+    return render_template('delete.html', post=post)
+
 
 
 @app.route('/update/<post_id>', methods=['GET', 'POST'])
 def update(post_id):
-    is_executed, blog_posts = load_blog_posts()
+    is_executed, post = fetch_post_by_id(post_id)
     if not is_executed:
         return ERROR_LOAD_POSTS
-    for post in blog_posts:
-        if post['id'] == post_id:
-            if request.method == 'POST':
-                author = request.form.get('author', '')
-                if author:
-                    post['author'] = author
-                title = request.form.get('title', '')
-                if title:
-                    post['title'] = title
-                content = request.form.get('content', '')
-                if content:
-                    post['content'] = content
-                is_executed, msg = update_blog_post(post, post_id)
-                if not is_executed:
-                    return msg
-                return redirect(url_for('home'))
-            return render_template('update.html', post=post, post_id=post_id)
-        return NOT_IN_JSON
+    if request.method == 'POST':
+        author = request.form.get('author', '')
+        title = request.form.get('title', '')
+        content = request.form.get('content', '')
+        post.update({
+            'author': author,
+            'title': title,
+            'content': content
+        })
+        is_executed, msg = update_blog_post(post, post_id)
+        if not is_executed:
+            return msg
+        return redirect(url_for('home'))
+    return render_template('update.html', post=post, post_id=post_id)
 
 
 if __name__ == '__main__':

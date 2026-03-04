@@ -13,7 +13,7 @@
             <p><em>Written by {{ post['author'] }}</em></p>
             <p>{{ post['content'] }}</p>
         </div>
-        <form method="POST" action="/delete/{{ post_id }}">
+        <form method="POST" action="/delete/{{ post['id'] }}">
             <label for="delete">Enter 'DELETE' to delete this post: </label></br>
             <input type="text" id="delete" name="delete" required>
             <input type="submit" value="Submit">
