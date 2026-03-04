@@ -50,6 +50,20 @@ def delete_blog_post(post_id: str) -> tuple[bool, str]:
     return False, "Post ID not found!"
 
 
+def update_blog_post(new_post: dict, post_id: str) -> tuple[bool, str]:
+    is_executed, blog_posts = load_blog_posts()
+    if not is_executed:
+        return False, "Could not load blog_post.json"
+    for post in blog_posts:
+        if post['id'] == post_id:
+            post['author'] = new_post['author']
+            post['title'] = new_post['title']
+            post['content'] = new_post['content']
+            is_executed, msg = save_blog_posts(blog_posts)
+            if not is_executed:
+                return False, msg
+            return True, "Done"
+        return False, "Post ID not found!"
 
 
 def main():

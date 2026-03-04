@@ -2,10 +2,12 @@ from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for
 
-from data.storage import load_blog_posts, append_blog_post, delete_blog_post
+from data.storage import load_blog_posts, append_blog_post, delete_blog_post, update_blog_post
 
 
 app = Flask(__name__)
+NOT_IN_JSON = "Blog post not in blog_posts.json"
+ERROR_LOAD_POSTS = "Error loading Blog posts"
 
 
 @app.route('/')
@@ -53,12 +55,36 @@ def delete(post_id):
 
     is_executed, blog_posts = load_blog_posts()
     if not is_executed:
-        return "Error loading Blog posts"
+        return ERROR_LOAD_POSTS
     for post in blog_posts:
         if post['id'] == post_id:
             return render_template('delete.html', post=post, post_id=post_id)
-    return "Blog post not in blog_posts.json"
+    return NOT_IN_JSON
 
+
+@app.route('/update/<post_id>', methods=['GET', 'POST'])
+def update(post_id):
+    is_executed, blog_posts = load_blog_posts()
+    if not is_executed:
+        return ERROR_LOAD_POSTS
+    for post in blog_posts:
+        if post['id'] == post_id:
+            if request.method == 'POST':
+                author = request.form.get('author', '')
+                if author:
+                    post['author'] = author
+                title = request.form.get('title', '')
+                if title:
+                    post['title'] = title
+                content = request.form.get('content', '')
+                if content:
+                    post['content'] = content
+                is_executed, msg = update_blog_post(post, post_id)
+                if not is_executed:
+                    return msg
+                return redirect(url_for('home'))
+            return render_template('update.html', post=post, post_id=post_id)
+        return NOT_IN_JSON
 
 
 if __name__ == '__main__':
