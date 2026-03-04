@@ -1,3 +1,40 @@
+"""
+A Flask-based web application for managing a blog with CRUD operations.
+
+This module implements a web interface for a blog system, allowing users to:
+- View all blog posts.
+- Add new blog posts.
+- Update existing blog posts.
+- Delete blog posts with confirmation.
+
+The application uses Flask for routing and templating, and relies on a separate
+`data.storage` module for persistent storage operations (e.g., loading, saving,
+updating, and deleting blog posts).
+
+Key Features:
+-------------
+- **CRUD Operations**: Full support for Create, Read, Update, and Delete operations on blog posts.
+- **User Feedback**: Flash messages for success, warning, and error states.
+- **Input Validation**: Server-side validation for form inputs and deletion confirmations.
+- **Error Handling**: Graceful fallbacks for storage errors and missing posts.
+- **Unique IDs**: Automatic generation of unique post IDs using microsecond-precision timestamps.
+
+Dependencies:
+-------------
+- Flask: For web routing, templating, and session management.
+- data.storage: For persistent storage operations (load, append, update, delete, fetch).
+
+Routes:
+-------
+    / (GET):
+        Displays the home page with all blog posts.
+    /add (GET, POST):
+        Handles the creation of new blog posts.
+    /delete/<post_id> (GET, POST):
+        Manages the deletion of a blog post with confirmation.
+    /update/<post_id> (GET, POST):
+        Handles the editing of an existing blog post.
+"""
 from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -15,6 +52,16 @@ NO_FORM_DELETE = "You did not enter 'DELETE'"
 
 @app.route('/')
 def home():
+    """
+    Renders the home page with all available blog posts.
+
+    Fetches blog posts from the storage module. If the loading process fails,
+    a fallback list containing a system error message is displayed to the user
+    to prevent the template from crashing.
+
+    Returns:
+        str: The rendered HTML content of 'index.html'.
+    """
     is_executed, blog_posts = load_blog_posts()
     if not is_executed:
         blog_posts = [{
@@ -28,6 +75,17 @@ def home():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
+    """
+    Handles the creation of a new blog post.
+
+    GET: Displays the 'add.html' form.
+    POST: Processes the form data, generates a unique ID with microsecond
+          precision, and attempts to save the new post.
+          Uses Flask flashing to provide feedback on success or failure.
+
+    Returns:
+        str: The rendered 'add.html' template or a redirect to the home page.
+    """
     if request.method == 'POST':
         author = request.form.get('author', '')
         title = request.form.get('title', '')
@@ -49,6 +107,21 @@ def add():
 
 @app.route('/delete/<post_id>', methods=['GET', 'POST'])
 def delete(post_id):
+    """
+    Manages the deletion of a specific blog post.
+
+    GET: Fetches the post by its ID to display a confirmation page.
+         If the post doesn't exist, redirects to home with an error.
+    POST: Validates that the user typed 'DELETE' in the confirmation form.
+          If valid, removes the post from storage.
+          Provides feedback via 'success', 'warning', or 'error' flash messages.
+
+    Args:
+        post_id (str): The unique identifier of the post to be deleted.
+
+    Returns:
+        str: The rendered 'delete.html' template or a redirect to the home page.
+    """
     if request.method == 'POST':
         form_delete = request.form.get('delete')
         if form_delete == 'DELETE':
@@ -71,6 +144,23 @@ def delete(post_id):
 
 @app.route('/update/<post_id>', methods=['GET', 'POST'])
 def update(post_id):
+    """
+    Handles the editing of an existing blog post.
+
+    Initializes by fetching the post by ID. If the post is not found,
+    the user is redirected home with an error message.
+
+    GET: Renders the 'update.html' form pre-populated with current post data.
+    POST: Extracts updated data from the form, updates the post object
+          (preserving the ID), and saves changes to the storage.
+          Displays success or error feedback via flash messages.
+
+    Args:
+        post_id (str): The unique identifier of the post to be updated.
+
+    Returns:
+        str: The rendered 'update.html' template or a redirect to the home page.
+    """
     is_executed, post = fetch_post_by_id(post_id)
     if not is_executed:
         flash(ERROR_LOAD_POSTS, 'error')
