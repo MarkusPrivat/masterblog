@@ -87,11 +87,15 @@ def add():
         str: The rendered 'add.html' template or a redirect to the home page.
     """
     if request.method == 'POST':
-        author = request.form.get('author', '')
-        title = request.form.get('title', '')
-        content = request.form.get('content', '')
+        author = request.form.get('author', '').strip()
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+
+        if not author or not title or not content:
+            flash("All fields are required and cannot be empty or just whitespace.", "error")
+            return redirect(url_for('add'))
+
         blog_post = {
-            'id': datetime.now().strftime("%Y%m%d%H%M%S%f"),
             'author': author,
             'title': title,
             'content': content
@@ -132,7 +136,7 @@ def delete(post_id):
             flash("Post deleted successfully!", 'success')
             return redirect(url_for('home'))
         flash(NO_FORM_DELETE, 'warning')
-        return redirect(url_for('home'))
+        return redirect(url_for('home', post_id=post_id))
 
     is_executed, post = fetch_post_by_id(post_id)
     if not is_executed:

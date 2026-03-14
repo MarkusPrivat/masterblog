@@ -1,22 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Flask Blog - Delete Post</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    </head>
-    <body>
-        <h1>Delete Post</h1>
-        <div class="post">
-            <h2>{{ post['title'] }}</h2>
-            <p><em>Written by {{ post['author'] }}</em></p>
-            <p>{{ post['content'] }}</p>
-        </div>
-        <form method="POST" action="/delete/{{ post['id'] }}">
-            <label for="delete">Enter 'DELETE' to delete this post: </label></br>
-            <input type="text" id="delete" name="delete" required>
-            <input type="submit" value="Submit">
-        </form>
-    </body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Delete Post{% endblock %}
+{% block content %}
+    <h1>Delete Post</h1>
+    <div class="post">
+        <h2>{{ post['title'] }}</h2>
+        <p class="meta">Written by {{ post['author'] }}</p>
+        <p>{{ post['content'] }}</p>
+    </div>
+
+    <form method="POST" action="/delete/{{ post['id'] }}">
+        <p>Are you sure? This action cannot be undone.</p>
+        <label for="delete">Type <strong>DELETE</strong> to confirm:</label>
+        <input type="text" id="delete" name="delete" required>
+        <button type="submit" class="btn-delete">Confirm Delete</button>
+    </form>
+{% endblock %}

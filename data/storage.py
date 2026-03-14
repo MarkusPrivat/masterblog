@@ -107,6 +107,9 @@ def append_blog_post(blog_post: dict) -> tuple[bool, str]:
     is_executed, blog_posts = load_blog_posts()
     if not is_executed:
         return False, ERROR_LOAD_JSON
+
+    blog_post['id'] = get_next_id(blog_posts)
+
     blog_posts.append(blog_post)
     is_executed, msg = save_blog_posts(blog_posts)
     if not is_executed:
@@ -132,7 +135,7 @@ def delete_blog_post(post_id: str) -> tuple[bool, str]:
     if not is_executed:
         return False, ERROR_LOAD_JSON
     for index, post in enumerate(blog_posts):
-        if post['id'] == post_id:
+        if post['id'] == int(post_id):
             del blog_posts[index]
             is_executed, msg = save_blog_posts(blog_posts)
             if not is_executed:
@@ -182,7 +185,12 @@ def fetch_post_by_id(post_id) -> tuple[bool, dict | str]:
     if not is_executed:
         return False, ERROR_LOAD_JSON
     for post in blog_posts:
-        if post['id'] == post_id:
+        if post['id'] == int(post_id):
             return True, post
     return False, ID_NOT_FOUND
 
+def get_next_id(blog_posts: list[dict]) -> int:
+    """Returns the next incremented integer ID."""
+    if not blog_posts:
+        return 1
+    return max(post['id'] for post in blog_posts) + 1
