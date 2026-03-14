@@ -170,9 +170,14 @@ def update(post_id):
         flash(ERROR_LOAD_POSTS, 'error')
         return redirect(url_for('home'))
     if request.method == 'POST':
-        author = request.form.get('author', '')
-        title = request.form.get('title', '')
-        content = request.form.get('content', '')
+        author = request.form.get('author', '').strip()
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+
+        if not author or not title or not content:
+            flash("All fields are required and cannot be empty or just whitespace.", "error")
+            return redirect(url_for('add'))
+
         post.update({
             'author': author,
             'title': title,
